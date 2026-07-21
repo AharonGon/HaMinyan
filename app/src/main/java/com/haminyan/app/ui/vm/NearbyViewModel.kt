@@ -32,7 +32,12 @@ data class NearbyUiState(
         get() = minyanim.mapNotNull { it.type?.trim() }.filter { it.isNotEmpty() }.distinct()
 
     val filtered: List<NearbyMinyan>
-        get() = if (typeFilter == null) minyanim else minyanim.filter { it.type?.trim() == typeFilter }
+        get() = (if (typeFilter == null) minyanim else minyanim.filter { it.type?.trim() == typeFilter })
+            .sortedBy { it.effectiveMeters }
+
+    /** האם קיבלנו מרחקי הליכה אמיתיים (ORS) עבור לפחות תוצאה אחת */
+    val hasWalkingData: Boolean
+        get() = minyanim.any { it.walkMeters != null }
 }
 
 class NearbyViewModel(

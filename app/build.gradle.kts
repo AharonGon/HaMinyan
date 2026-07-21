@@ -13,6 +13,16 @@ val keystoreProperties = Properties().apply {
     }
 }
 
+val localPropertiesFile = rootProject.file("local.properties")
+val localProperties = Properties().apply {
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.inputStream().use(::load)
+    }
+}
+val orsApiKey: String = (localProperties.getProperty("orsApiKey")
+    ?: System.getenv("ORS_API_KEY")
+    ?: "").trim()
+
 android {
     namespace = "com.haminyan.app"
     compileSdk = 35
@@ -21,9 +31,10 @@ android {
         applicationId = "com.haminyan.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.1.0"
         buildConfigField("String", "GITHUB_REPOSITORY", "\"AharonGon/HaMinyan\"")
+        buildConfigField("String", "ORS_API_KEY", "\"$orsApiKey\"")
     }
 
     signingConfigs {

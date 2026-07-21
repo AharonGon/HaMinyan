@@ -26,6 +26,7 @@ import androidx.compose.material.icons.outlined.Navigation
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.SearchOff
+import androidx.compose.material.icons.outlined.Straighten
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -54,6 +55,7 @@ import com.haminyan.app.ui.components.PrayerBadge
 import com.haminyan.app.ui.vm.NearbyUiState
 import com.haminyan.app.ui.vm.NearbyViewModel
 import com.haminyan.app.util.DayUtils
+import com.haminyan.app.util.DistanceFormat
 import com.haminyan.app.util.HebrewDate
 import com.haminyan.app.util.Intents
 import java.time.LocalDate
@@ -207,6 +209,52 @@ private fun NearbyContent(
 private fun NearbyMinyan.room(): String = comment ?: ""
 
 @Composable
+private fun WalkingInfo(minyan: NearbyMinyan) {
+    val walkDistance = DistanceFormat.meters(minyan.walkMeters)
+    val walkDuration = DistanceFormat.walkDuration(minyan.walkSeconds)
+
+    if (walkDistance != null) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(top = 2.dp),
+        ) {
+            Icon(
+                Icons.AutoMirrored.Outlined.DirectionsWalk,
+                contentDescription = null,
+                modifier = Modifier.size(14.dp),
+                tint = MaterialTheme.colorScheme.secondary,
+            )
+            Spacer(Modifier.width(4.dp))
+            Text(
+                text = if (walkDuration != null) "$walkDistance • $walkDuration" else walkDistance,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.secondary,
+                fontWeight = FontWeight.Medium,
+            )
+        }
+    } else if (!minyan.distance.isNullOrBlank()) {
+        // אין נתוני הליכה - נציג את המרחק האווירי מנדרים פלוס
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(top = 2.dp),
+        ) {
+            Icon(
+                Icons.Outlined.Straighten,
+                contentDescription = null,
+                modifier = Modifier.size(14.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.width(4.dp))
+            Text(
+                text = "${minyan.distance} (אווירי)",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+@Composable
 private fun RadiusSelector(current: Int, onSelect: (Int) -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(
@@ -285,14 +333,8 @@ private fun NearbyMinyanCard(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                        if (!minyan.distance.isNullOrBlank()) {
-                            Text(
-                                text = " • ${minyan.distance}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
                     }
+                    WalkingInfo(minyan = minyan)
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
