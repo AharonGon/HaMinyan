@@ -1,6 +1,9 @@
 package com.haminyan.app.ui.screens
 
 import android.Manifest
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -19,6 +22,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.DirectionsWalk
+import androidx.compose.material.icons.outlined.GpsOff
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.LocationOff
 import androidx.compose.material.icons.outlined.MyLocation
@@ -61,6 +65,7 @@ import com.haminyan.app.util.Intents
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlin.math.roundToInt
 
 private val RADIUS_OPTIONS = listOf(1, 2, 5, 10, 15)
 
@@ -91,6 +96,10 @@ fun NearbyScreen(
 
     Column(modifier = Modifier.fillMaxSize()) {
         NearbyHeader(state = state, onRefresh = viewModel::refresh)
+
+        if (state.coarseOnly && !state.permissionDenied) {
+            PreciseLocationBanner()
+        }
 
         when {
             state.permissionDenied -> EmptyState(
@@ -150,8 +159,10 @@ private fun NearbyHeader(state: NearbyUiState, onRefresh: () -> Unit) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             if (state.lastUpdated != null) {
+                val accuracy = state.locationAccuracy
+                val accuracyText = if (accuracy != null) " • מדויק ל-±${accuracy.roundToInt()} מ׳" else ""
                 Text(
-                    text = "עודכן ב-${state.lastUpdated}",
+                    text = "עודכן ב-${state.lastUpdated}$accuracyText",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -159,6 +170,53 @@ private fun NearbyHeader(state: NearbyUiState, onRefresh: () -> Unit) {
         }
         IconButton(onClick = onRefresh) {
             Icon(Icons.Outlined.Refresh, contentDescription = "רענון")
+        }
+    }
+}
+
+@Composable
+private fun PreciseLocationBanner() {
+    val context = LocalContext.current
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+        ),
+    ) {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                Icons.Outlined.GpsOff,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier.size(22.dp),
+            )
+            Spacer(Modifier.width(10.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "המיקום במצב מקורב",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                )
+                Text(
+                    text = "לדיוק מלא, אפשרו \"מיקום מדויק\" בהגדרות האפליקציה",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                )
+            }
+            TextButton(onClick = {
+                val intent = Intent(
+                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                    Uri.fromParts("package", context.packageName, null),
+                )
+                context.startActivity(intent)
+            }) {
+                Text("הגדרות")
+            }
         }
     }
 }

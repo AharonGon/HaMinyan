@@ -21,6 +21,8 @@ import java.time.format.DateTimeFormatter
 data class NearbyUiState(
     val loading: Boolean = false,
     val permissionDenied: Boolean = false,
+    val coarseOnly: Boolean = false,
+    val locationAccuracy: Float? = null,
     val error: String? = null,
     val minyanim: List<NearbyMinyan> = emptyList(),
     val typeFilter: String? = null,
@@ -78,14 +80,16 @@ class NearbyViewModel(
 
     fun refresh() {
         viewModelScope.launch {
-            _state.update { it.copy(loading = true, error = null) }
+            _state.update {
+                it.copy(loading = true, error = null, coarseOnly = locationHelper.hasPermission() && !locationHelper.hasPreciseLocation())
+            }
             val location: GeoPoint? = locationHelper.currentLocation()
             if (location == null) {
                 _state.update {
                     it.copy(
                         loading = false,
                         permissionDenied = !locationHelper.hasPermission(),
-                        error = if (locationHelper.hasPermission()) "לא הצלחנו לאתר את המיקום הנוכחי" else null,
+                        error = if (locationHelper.hasPermission()) "לא הצלחנו לאתר את המיקום הנוכחי. ודאו ש-GPS מופעל ונסו שוב." else null,
                     )
                 }
                 return@launch
@@ -97,6 +101,7 @@ class NearbyViewModel(
                     it.copy(
                         loading = false,
                         minyanim = list,
+                        locationAccuracy = location.accuracyMeters,
                         hasLoadedOnce = true,
                         lastUpdated = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm")),
                     )
