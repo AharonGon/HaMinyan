@@ -9,6 +9,7 @@ import com.haminyan.app.data.PrefsStore
 import com.haminyan.app.data.model.FavoriteMosad
 import com.haminyan.app.data.model.MinyanItem
 import com.haminyan.app.util.DayUtils
+import com.haminyan.app.util.ErrorInfo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -21,6 +22,7 @@ import kotlinx.coroutines.launch
 data class DetailUiState(
     val loading: Boolean = true,
     val error: String? = null,
+    val errorDetails: String? = null,
     val schedule: List<MinyanItem> = emptyList(),
     val selectedDay: Char = DayUtils.todayLetter(),
 ) {
@@ -52,13 +54,19 @@ class DetailViewModel(
 
     fun load() {
         viewModelScope.launch {
-            _state.update { it.copy(loading = true, error = null) }
+            _state.update { it.copy(loading = true, error = null, errorDetails = null) }
             runCatching { repository.mosadSchedule(mosadId) }
                 .onSuccess { list ->
                     _state.update { it.copy(loading = false, schedule = list) }
                 }
-                .onFailure {
-                    _state.update { it.copy(loading = false, error = "שגיאה בטעינת לוח הזמנים") }
+                .onFailure { e ->
+                    _state.update {
+                        it.copy(
+                            loading = false,
+                            error = ErrorInfo.friendly(e),
+                            errorDetails = ErrorInfo.technical(e, "GetMosadMinyan id=$mosadId"),
+                        )
+                    }
                 }
         }
     }

@@ -9,6 +9,7 @@ import com.haminyan.app.data.PrefsStore
 import com.haminyan.app.data.model.NearbyMinyan
 import com.haminyan.app.location.GeoPoint
 import com.haminyan.app.location.LocationHelper
+import com.haminyan.app.util.ErrorInfo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,6 +25,7 @@ data class NearbyUiState(
     val coarseOnly: Boolean = false,
     val locationAccuracy: Float? = null,
     val error: String? = null,
+    val errorDetails: String? = null,
     val minyanim: List<NearbyMinyan> = emptyList(),
     val typeFilter: String? = null,
     val radiusKm: Int = 2,
@@ -81,7 +83,7 @@ class NearbyViewModel(
     fun refresh() {
         viewModelScope.launch {
             _state.update {
-                it.copy(loading = true, error = null, coarseOnly = locationHelper.hasPermission() && !locationHelper.hasPreciseLocation())
+                it.copy(loading = true, error = null, errorDetails = null, coarseOnly = locationHelper.hasPermission() && !locationHelper.hasPreciseLocation())
             }
             val location: GeoPoint? = locationHelper.currentLocation()
             if (location == null) {
@@ -108,7 +110,12 @@ class NearbyViewModel(
                 }
             }.onFailure { e ->
                 _state.update {
-                    it.copy(loading = false, error = "שגיאה בטעינת הנתונים. בדקו את החיבור לרשת.", hasLoadedOnce = true)
+                    it.copy(
+                        loading = false,
+                        error = ErrorInfo.friendly(e),
+                        errorDetails = ErrorInfo.technical(e, "GetNearestMinyan radius=${it.radiusKm}"),
+                        hasLoadedOnce = true,
+                    )
                 }
             }
         }

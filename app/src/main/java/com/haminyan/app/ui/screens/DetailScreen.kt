@@ -94,7 +94,11 @@ fun DetailScreen(
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
             when {
                 state.loading -> LoadingState()
-                state.error != null -> ErrorState(message = state.error!!, onRetry = viewModel::load)
+                state.error != null -> ErrorState(
+                    message = state.error!!,
+                    onRetry = viewModel::load,
+                    technicalDetails = state.errorDetails,
+                )
                 else -> {
                     DaySelector(
                         selected = state.selectedDay,

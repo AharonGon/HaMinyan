@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
+import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Schedule
@@ -22,12 +23,15 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.haminyan.app.util.Intents
 
 /** אייקון לפי סוג תפילה - אייקונים בלבד, ללא אימוג'י */
 fun prayerIcon(type: String?): ImageVector = when (type?.trim()) {
@@ -108,15 +112,56 @@ fun EmptyState(
 }
 
 @Composable
-fun ErrorState(message: String, onRetry: () -> Unit, modifier: Modifier = Modifier) {
-    EmptyState(
-        icon = Icons.Outlined.ErrorOutline,
-        title = "אופס, משהו השתבש",
-        subtitle = message,
-        actionLabel = "נסו שוב",
-        onAction = onRetry,
-        modifier = modifier,
-    )
+fun ErrorState(
+    message: String,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier,
+    technicalDetails: String? = null,
+) {
+    val context = LocalContext.current
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.ErrorOutline,
+            contentDescription = null,
+            modifier = Modifier.size(64.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+            text = "אופס, משהו השתבש",
+            style = MaterialTheme.typography.titleLarge,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 16.dp),
+        )
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 8.dp),
+        )
+        Button(onClick = onRetry, modifier = Modifier.padding(top = 20.dp)) {
+            Text("נסו שוב")
+        }
+        if (technicalDetails != null) {
+            TextButton(
+                onClick = { Intents.reportIssue(context, technicalDetails) },
+                modifier = Modifier.padding(top = 4.dp),
+            ) {
+                Icon(
+                    Icons.Outlined.BugReport,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                )
+                Text(" דיווח על התקלה", style = MaterialTheme.typography.labelLarge)
+            }
+        }
+    }
 }
 
 @Composable

@@ -7,6 +7,7 @@ import com.haminyan.app.MinyanApp
 import com.haminyan.app.data.MinyanRepository
 import com.haminyan.app.data.PrefsStore
 import com.haminyan.app.data.model.MosadResult
+import com.haminyan.app.util.ErrorInfo
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,6 +23,7 @@ data class SearchUiState(
     val loading: Boolean = false,
     val results: List<MosadResult> = emptyList(),
     val error: String? = null,
+    val errorDetails: String? = null,
     val searched: Boolean = false,
 )
 
@@ -68,14 +70,19 @@ class SearchViewModel(
 
     private suspend fun performSearch(query: String) {
         if (query.isEmpty()) return
-        _state.update { it.copy(loading = true, error = null) }
+        _state.update { it.copy(loading = true, error = null, errorDetails = null) }
         runCatching { repository.search(query) }
             .onSuccess { list ->
                 _state.update { it.copy(loading = false, results = list, searched = true) }
             }
-            .onFailure {
+            .onFailure { e ->
                 _state.update {
-                    it.copy(loading = false, error = "שגיאה בחיפוש. בדקו את החיבור לרשת.", searched = true)
+                    it.copy(
+                        loading = false,
+                        error = ErrorInfo.friendly(e),
+                        errorDetails = ErrorInfo.technical(e, "GetClientBox query=$query"),
+                        searched = true,
+                    )
                 }
             }
     }

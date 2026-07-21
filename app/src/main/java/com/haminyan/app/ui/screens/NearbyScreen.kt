@@ -120,7 +120,11 @@ fun NearbyScreen(
             state.loading && !state.hasLoadedOnce -> LoadingState()
 
             state.error != null && state.minyanim.isEmpty() ->
-                ErrorState(message = state.error!!, onRetry = viewModel::refresh)
+                ErrorState(
+                    message = state.error!!,
+                    onRetry = viewModel::refresh,
+                    technicalDetails = state.errorDetails,
+                )
 
             else -> PullToRefreshBox(
                 isRefreshing = state.loading,

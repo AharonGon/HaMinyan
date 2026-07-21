@@ -37,6 +37,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.haminyan.app.data.model.MosadResult
 import com.haminyan.app.ui.components.EmptyState
+import com.haminyan.app.ui.components.ErrorState
 import com.haminyan.app.ui.vm.SearchViewModel
 
 @Composable
@@ -81,11 +82,10 @@ fun SearchScreen(
                 CircularProgressIndicator()
             }
 
-            state.error != null -> Text(
-                text = state.error!!,
-                color = MaterialTheme.colorScheme.error,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth().padding(24.dp),
+            state.error != null -> ErrorState(
+                message = state.error!!,
+                onRetry = { viewModel.searchNow(state.query) },
+                technicalDetails = state.errorDetails,
             )
 
             state.searched && state.results.isEmpty() -> EmptyState(
