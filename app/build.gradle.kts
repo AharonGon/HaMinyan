@@ -31,8 +31,8 @@ android {
         applicationId = "com.haminyan.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 7
-        versionName = "1.4.1"
+        versionCode = 8
+        versionName = "1.4.2"
         buildConfigField("String", "GITHUB_REPOSITORY", "\"AharonGon/HaMinyan\"")
         buildConfigField("String", "ORS_API_KEY", "\"$orsApiKey\"")
     }
@@ -75,6 +75,7 @@ android {
 dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)

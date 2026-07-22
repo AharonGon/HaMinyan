@@ -4,6 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -41,11 +43,13 @@ import com.haminyan.app.ui.screens.NearbyScreen
 import com.haminyan.app.ui.screens.SearchScreen
 import com.haminyan.app.ui.screens.SettingsScreen
 import com.haminyan.app.ui.screens.ZmanimScreen
+import com.haminyan.app.ui.components.SplashScreen
 import com.haminyan.app.ui.components.UpdateResultDialog
 import com.haminyan.app.ui.theme.HaMinyanTheme
 import com.haminyan.app.ui.vm.DetailViewModel
 import com.haminyan.app.ui.vm.NearbyViewModel
 import com.haminyan.app.ui.vm.SearchViewModel
+import com.haminyan.app.ui.vm.StartupViewModel
 import com.haminyan.app.ui.vm.UpdateViewModel
 import com.haminyan.app.ui.vm.ZmanimViewModel
 import java.net.URLDecoder
@@ -67,14 +71,26 @@ private val bottomDestinations = listOf(
 )
 
 class MainActivity : ComponentActivity() {
+
+    private val startupViewModel: StartupViewModel by viewModels {
+        StartupViewModel.factory(application as MinyanApp)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+        splashScreen.setKeepOnScreenCondition { startupViewModel.isShowingSplash() }
         enableEdgeToEdge()
         val app = application as MinyanApp
         setContent {
             val themeMode by app.prefs.themeMode.collectAsState(initial = ThemeMode.SYSTEM)
+            val showSplash by startupViewModel.showSplash.collectAsState()
             HaMinyanTheme(themeMode = themeMode) {
-                MinyanNavHost(app)
+                if (showSplash) {
+                    SplashScreen()
+                } else {
+                    MinyanNavHost(app)
+                }
             }
         }
     }
