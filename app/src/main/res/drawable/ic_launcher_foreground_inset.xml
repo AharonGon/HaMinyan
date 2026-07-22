@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Adaptive icons מציגים רק ~66% ממרכז התמונה.
+  inset מקטין את ה-foreground כדי שהאייקון המלא (כולל הכובע והרקע) ייכנס לאזור הבטוח.
+-->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/app_icon"
+    android:insetLeft="20%"
+    android:insetTop="20%"
+    android:insetRight="20%"
+    android:insetBottom="20%" />

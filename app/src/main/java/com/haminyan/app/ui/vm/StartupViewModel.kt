@@ -19,13 +19,12 @@ class StartupViewModel(
     private val _showSplash = MutableStateFlow(true)
     val showSplash: StateFlow<Boolean> = _showSplash.asStateFlow()
 
-    fun isShowingSplash(): Boolean = _showSplash.value
-
     init {
         viewModelScope.launch {
-            delay(800)
+            // מינימום קצר כדי שהתמונה תיראה גם כשהמיקום מגיע מיד
+            delay(1_200)
             if (locationHelper.hasPermission()) {
-                withTimeoutOrNull(15_000) {
+                withTimeoutOrNull(12_000) {
                     locationHelper.currentLocation()
                 }
             }

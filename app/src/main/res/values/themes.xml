@@ -6,9 +6,10 @@
         <item name="android:windowLightStatusBar">true</item>
     </style>
 
+    <!-- מסך מערכת קצר בלבד; התמונה המלאה (splash.png) מוצגת ב-Compose -->
     <style name="Theme.HaMinyan.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/splash_background</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/app_icon</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground_inset</item>
         <item name="postSplashScreenTheme">@style/Theme.HaMinyan</item>
     </style>
 </resources>

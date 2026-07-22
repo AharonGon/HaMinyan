@@ -31,8 +31,8 @@ android {
         applicationId = "com.haminyan.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 8
-        versionName = "1.4.2"
+        versionCode = 9
+        versionName = "1.4.3"
         buildConfigField("String", "GITHUB_REPOSITORY", "\"AharonGon/HaMinyan\"")
         buildConfigField("String", "ORS_API_KEY", "\"$orsApiKey\"")
     }

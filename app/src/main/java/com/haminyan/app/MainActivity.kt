@@ -77,9 +77,9 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        val splashScreen = installSplashScreen()
+        // מסך מערכת קצר בלבד - התמונה המלאה splash.png מוצגת ב-Compose בזמן טעינת המיקום
+        installSplashScreen()
         super.onCreate(savedInstanceState)
-        splashScreen.setKeepOnScreenCondition { startupViewModel.isShowingSplash() }
         enableEdgeToEdge()
         val app = application as MinyanApp
         setContent {
