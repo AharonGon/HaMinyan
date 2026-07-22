@@ -4,6 +4,10 @@
 -keep class com.haminyan.app.update.GitHubAsset { *; }
 -keep class com.haminyan.app.data.MatrixRequest { *; }
 -keep class com.haminyan.app.data.MatrixResponse { *; }
+-keep class com.haminyan.app.data.ZmanimResponse { *; }
+-keep class com.haminyan.app.data.ZmanimLocation { *; }
+-keep class com.haminyan.app.data.CalendarResponse { *; }
+-keep class com.haminyan.app.data.CalendarItem { *; }
 -keepattributes Signature
 -keepattributes *Annotation*
 -dontwarn sun.misc.**

@@ -1,6 +1,8 @@
 package com.haminyan.app
 
 import android.app.Application
+import com.haminyan.app.data.HebcalApi
+import com.haminyan.app.data.HebcalRepository
 import com.haminyan.app.data.MinyanRepository
 import com.haminyan.app.data.NedarimApi
 import com.haminyan.app.data.PrefsStore
@@ -21,5 +23,8 @@ class MinyanApp : Application() {
     val locationHelper: LocationHelper by lazy { LocationHelper(this) }
     val updateChecker: UpdateChecker by lazy {
         UpdateChecker(BuildConfig.GITHUB_REPOSITORY)
+    }
+    val hebcalRepository: HebcalRepository by lazy {
+        HebcalRepository(HebcalApi.create())
     }
 }

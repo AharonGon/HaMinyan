@@ -10,9 +10,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.NearMe
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.NearMe
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
@@ -38,12 +40,14 @@ import com.haminyan.app.ui.screens.FavoritesScreen
 import com.haminyan.app.ui.screens.NearbyScreen
 import com.haminyan.app.ui.screens.SearchScreen
 import com.haminyan.app.ui.screens.SettingsScreen
+import com.haminyan.app.ui.screens.ZmanimScreen
 import com.haminyan.app.ui.components.UpdateResultDialog
 import com.haminyan.app.ui.theme.HaMinyanTheme
 import com.haminyan.app.ui.vm.DetailViewModel
 import com.haminyan.app.ui.vm.NearbyViewModel
 import com.haminyan.app.ui.vm.SearchViewModel
 import com.haminyan.app.ui.vm.UpdateViewModel
+import com.haminyan.app.ui.vm.ZmanimViewModel
 import java.net.URLDecoder
 import java.net.URLEncoder
 
@@ -57,6 +61,7 @@ private data class BottomDestination(
 private val bottomDestinations = listOf(
     BottomDestination("nearby", "בקרבתי", Icons.Filled.NearMe, Icons.Outlined.NearMe),
     BottomDestination("search", "חיפוש", Icons.Filled.Search, Icons.Outlined.Search),
+    BottomDestination("zmanim", "זמנים", Icons.Filled.Schedule, Icons.Outlined.Schedule),
     BottomDestination("favorites", "מועדפים", Icons.Filled.Favorite, Icons.Outlined.FavoriteBorder),
     BottomDestination("settings", "הגדרות", Icons.Filled.Settings, Icons.Outlined.Settings),
 )
@@ -140,6 +145,10 @@ private fun MinyanNavHost(app: MinyanApp) {
                 SearchScreen(viewModel = vm, onOpenMosad = { id, name ->
                     navController.navigate("mosad/$id/${URLEncoder.encode(name, "UTF-8")}")
                 })
+            }
+            composable("zmanim") {
+                val vm: ZmanimViewModel = viewModel(factory = ZmanimViewModel.factory(app))
+                ZmanimScreen(viewModel = vm)
             }
             composable("favorites") {
                 FavoritesScreen(onOpenMosad = { id, name ->

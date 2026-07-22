@@ -199,6 +199,12 @@ fun SettingsScreen(
                     modifier = Modifier.padding(top = 6.dp),
                 )
                 Text(
+                    text = "זמני הלכה, דף יומי וימים מיוחדים מסופקים באמצעות hebcal.com.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 6.dp),
+                )
+                Text(
                     text = "גרסה ${BuildConfig.VERSION_NAME}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
