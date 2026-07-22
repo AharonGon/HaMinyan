@@ -8,6 +8,7 @@ import com.haminyan.app.data.HalachicTime
 import com.haminyan.app.data.HebcalRepository
 import com.haminyan.app.data.JewishDayInfo
 import com.haminyan.app.data.ZmanimGroup
+import com.haminyan.app.location.GeocodingHelper
 import com.haminyan.app.location.LocationHelper
 import com.haminyan.app.util.ErrorInfo
 import kotlinx.coroutines.async
@@ -38,6 +39,7 @@ data class ZmanimUiState(
 class ZmanimViewModel(
     private val hebcal: HebcalRepository,
     private val locationHelper: LocationHelper,
+    private val app: MinyanApp,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ZmanimUiState())
@@ -64,10 +66,13 @@ class ZmanimViewModel(
                 val point = locationHelper.currentLocation()
                     ?: throw IllegalStateException("לא התקבל מיקום מהמכשיר")
 
-                val (zmanim, dayInfo) = coroutineScope {
+                val (zmanim, dayInfo, locality) = coroutineScope {
                     val zmanimDeferred = async { hebcal.zmanim(point.lat, point.lng) }
                     val dayInfoDeferred = async { hebcal.dayInfo() }
-                    zmanimDeferred.await() to dayInfoDeferred.await()
+                    val localityDeferred = async {
+                        GeocodingHelper.localityName(app, point.lat, point.lng)
+                    }
+                    Triple(zmanimDeferred.await(), dayInfoDeferred.await(), localityDeferred.await())
                 }
 
                 _state.update {
@@ -76,7 +81,7 @@ class ZmanimViewModel(
                         permissionDenied = false,
                         coarseOnly = !locationHelper.hasPreciseLocation(),
                         locationAccuracy = point.accuracyMeters,
-                        locationLabel = formatCoords(point.lat, point.lng),
+                        locationLabel = locality ?: "מיקום לא ידוע",
                         zmanim = zmanim,
                         dayInfo = dayInfo,
                         nextZmanKey = HebcalRepository.nextZman(zmanim),
@@ -96,14 +101,11 @@ class ZmanimViewModel(
         }
     }
 
-    private fun formatCoords(lat: Double, lng: Double): String =
-        String.format("%.4f, %.4f", lat, lng)
-
     companion object {
         fun factory(app: MinyanApp) = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return ZmanimViewModel(app.hebcalRepository, app.locationHelper) as T
+                return ZmanimViewModel(app.hebcalRepository, app.locationHelper, app) as T
             }
         }
     }

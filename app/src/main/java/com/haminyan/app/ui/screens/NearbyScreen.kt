@@ -29,6 +29,7 @@ import androidx.compose.material.icons.outlined.MyLocation
 import androidx.compose.material.icons.outlined.Navigation
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material.icons.outlined.Straighten
 import androidx.compose.material3.Card
@@ -56,18 +57,20 @@ import com.haminyan.app.ui.components.EmptyState
 import com.haminyan.app.ui.components.ErrorState
 import com.haminyan.app.ui.components.LoadingState
 import com.haminyan.app.ui.components.PrayerBadge
+import com.haminyan.app.ui.vm.NearbySortMode
 import com.haminyan.app.ui.vm.NearbyUiState
 import com.haminyan.app.ui.vm.NearbyViewModel
 import com.haminyan.app.util.DayUtils
 import com.haminyan.app.util.DistanceFormat
 import com.haminyan.app.util.HebrewDate
 import com.haminyan.app.util.Intents
+import com.haminyan.app.util.RadiusFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.math.roundToInt
 
-private val RADIUS_OPTIONS = listOf(1, 2, 5, 10, 15)
+private val RADIUS_OPTIONS = RadiusFormat.OPTIONS_METERS
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -135,6 +138,7 @@ fun NearbyScreen(
                     state = state,
                     onRadiusChange = viewModel::setRadius,
                     onTypeFilter = viewModel::setTypeFilter,
+                    onSortModeChange = viewModel::setSortMode,
                     onOpenMosad = onOpenMosad,
                 )
             }
@@ -230,6 +234,7 @@ private fun NearbyContent(
     state: NearbyUiState,
     onRadiusChange: (Int) -> Unit,
     onTypeFilter: (String?) -> Unit,
+    onSortModeChange: (NearbySortMode) -> Unit,
     onOpenMosad: (id: String, name: String) -> Unit,
 ) {
     LazyColumn(
@@ -240,7 +245,10 @@ private fun NearbyContent(
         ),
     ) {
         item {
-            RadiusSelector(current = state.radiusKm, onSelect = onRadiusChange)
+            RadiusSelector(current = state.radiusMeters, onSelect = onRadiusChange)
+        }
+        item {
+            SortModeRow(selected = state.sortMode, onSelect = onSortModeChange)
         }
         if (state.availableTypes.size > 1) {
             item {
@@ -320,21 +328,54 @@ private fun WalkingInfo(minyan: NearbyMinyan) {
 private fun RadiusSelector(current: Int, onSelect: (Int) -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(
-            Icons.AutoMirrored.Outlined.DirectionsWalk,
+            Icons.Outlined.MyLocation,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(20.dp),
         )
         Spacer(Modifier.width(8.dp))
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(RADIUS_OPTIONS) { km ->
+            items(RADIUS_OPTIONS) { meters ->
                 FilterChip(
-                    selected = current == km,
-                    onClick = { onSelect(km) },
-                    label = { Text("$km ק\"מ") },
+                    selected = current == meters,
+                    onClick = { onSelect(meters) },
+                    label = { Text(RadiusFormat.label(meters)) },
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun SortModeRow(
+    selected: NearbySortMode,
+    onSelect: (NearbySortMode) -> Unit,
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            Icons.Outlined.Schedule,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(20.dp),
+        )
+        Spacer(Modifier.width(8.dp))
+        FilterChip(
+            selected = selected == NearbySortMode.DISTANCE,
+            onClick = { onSelect(NearbySortMode.DISTANCE) },
+            label = { Text("קרוב ביותר") },
+            leadingIcon = if (selected == NearbySortMode.DISTANCE) {
+                { Icon(Icons.Outlined.MyLocation, contentDescription = null, Modifier.size(16.dp)) }
+            } else null,
+        )
+        Spacer(Modifier.width(8.dp))
+        FilterChip(
+            selected = selected == NearbySortMode.TIME,
+            onClick = { onSelect(NearbySortMode.TIME) },
+            label = { Text("מוקדם ביותר") },
+            leadingIcon = if (selected == NearbySortMode.TIME) {
+                { Icon(Icons.Outlined.Schedule, contentDescription = null, Modifier.size(16.dp)) }
+            } else null,
+        )
     }
 }
 

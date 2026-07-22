@@ -28,7 +28,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.Slider
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -42,8 +45,8 @@ import com.haminyan.app.BuildConfig
 import com.haminyan.app.MinyanApp
 import com.haminyan.app.data.ThemeMode
 import com.haminyan.app.ui.vm.UpdateUiState
+import com.haminyan.app.util.RadiusFormat
 import kotlinx.coroutines.launch
-import kotlin.math.roundToInt
 
 @Composable
 fun SettingsScreen(
@@ -53,7 +56,7 @@ fun SettingsScreen(
     val app = LocalContext.current.applicationContext as MinyanApp
     val scope = rememberCoroutineScope()
     val themeMode by app.prefs.themeMode.collectAsState(initial = ThemeMode.SYSTEM)
-    val radiusKm by app.prefs.radiusKm.collectAsState(initial = 2)
+    val radiusMeters by app.prefs.radiusMeters.collectAsState(initial = 2_000)
 
     Column(
         modifier = Modifier
@@ -150,19 +153,23 @@ fun SettingsScreen(
                         modifier = Modifier.weight(1f),
                     )
                     Text(
-                        text = "$radiusKm ק\"מ",
+                        text = RadiusFormat.label(radiusMeters),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary,
                     )
                 }
-                Slider(
-                    value = radiusKm.toFloat(),
-                    onValueChange = { value ->
-                        scope.launch { app.prefs.setRadiusKm(value.roundToInt().coerceIn(1, 15)) }
-                    },
-                    valueRange = 1f..15f,
-                    steps = 13,
-                )
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(top = 12.dp),
+                ) {
+                    items(RadiusFormat.OPTIONS_METERS) { meters ->
+                        FilterChip(
+                            selected = radiusMeters == meters,
+                            onClick = { scope.launch { app.prefs.setRadiusMeters(meters) } },
+                            label = { Text(RadiusFormat.label(meters)) },
+                        )
+                    }
+                }
             }
         }
 

@@ -150,7 +150,7 @@ private fun ZmanimHeader(state: ZmanimUiState, onRefresh: () -> Unit) {
                 val accuracy = state.locationAccuracy
                 val accuracyText = if (accuracy != null) " • ±${accuracy.roundToInt()} מ׳" else ""
                 Text(
-                    text = "מיקום: ${state.locationLabel}$accuracyText",
+                    text = "${state.locationLabel}$accuracyText",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -253,34 +253,20 @@ private fun SpecialDaysCard(days: List<SpecialDay>) {
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    Icons.Outlined.Celebration,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.size(22.dp),
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    text = "יום מיוחד",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
-            }
-            days.forEach { day ->
-                Spacer(Modifier.height(10.dp))
+            days.forEachIndexed { index, day ->
+                if (index > 0) Spacer(Modifier.height(10.dp))
                 Row(verticalAlignment = Alignment.Top) {
                     Icon(
                         specialDayIcon(day.category),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(18.dp).padding(top = 2.dp),
+                        modifier = Modifier.size(20.dp).padding(top = 2.dp),
                     )
-                    Spacer(Modifier.width(8.dp))
+                    Spacer(Modifier.width(10.dp))
                     Column {
                         Text(
                             text = day.title,
-                            style = MaterialTheme.typography.titleSmall,
+                            style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                         )

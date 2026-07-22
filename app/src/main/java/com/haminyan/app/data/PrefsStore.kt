@@ -24,6 +24,7 @@ class PrefsStore(private val context: Context) {
         val FAVORITES = stringPreferencesKey("favorites")
         val RECENT_SEARCHES = stringPreferencesKey("recent_searches")
         val RADIUS_KM = intPreferencesKey("radius_km")
+        val RADIUS_METERS = intPreferencesKey("radius_meters")
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val SHOW_PAST = booleanPreferencesKey("show_past")
     }
@@ -36,7 +37,12 @@ class PrefsStore(private val context: Context) {
         parseStrings(prefs[Keys.RECENT_SEARCHES])
     }
 
-    val radiusKm: Flow<Int> = context.dataStore.data.map { it[Keys.RADIUS_KM] ?: 2 }
+    val radiusMeters: Flow<Int> = context.dataStore.data.map { prefs ->
+        prefs[Keys.RADIUS_METERS] ?: ((prefs[Keys.RADIUS_KM] ?: 2) * 1000)
+    }
+
+    /** @deprecated השתמשו ב-radiusMeters */
+    val radiusKm: Flow<Int> = radiusMeters.map { it / 1000 }
 
     val themeMode: Flow<ThemeMode> = context.dataStore.data.map {
         runCatching { ThemeMode.valueOf(it[Keys.THEME_MODE] ?: "SYSTEM") }.getOrDefault(ThemeMode.SYSTEM)
@@ -65,8 +71,12 @@ class PrefsStore(private val context: Context) {
         context.dataStore.edit { it[Keys.RECENT_SEARCHES] = "[]" }
     }
 
+    suspend fun setRadiusMeters(value: Int) {
+        context.dataStore.edit { it[Keys.RADIUS_METERS] = value }
+    }
+
     suspend fun setRadiusKm(value: Int) {
-        context.dataStore.edit { it[Keys.RADIUS_KM] = value }
+        setRadiusMeters(value * 1000)
     }
 
     suspend fun setThemeMode(mode: ThemeMode) {

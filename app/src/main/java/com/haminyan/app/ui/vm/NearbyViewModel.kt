@@ -9,7 +9,9 @@ import com.haminyan.app.data.PrefsStore
 import com.haminyan.app.data.model.NearbyMinyan
 import com.haminyan.app.location.GeoPoint
 import com.haminyan.app.location.LocationHelper
+import com.haminyan.app.util.DayUtils
 import com.haminyan.app.util.ErrorInfo
+import com.haminyan.app.util.RadiusFormat
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,6 +20,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+
+enum class NearbySortMode { DISTANCE, TIME }
 
 data class NearbyUiState(
     val loading: Boolean = false,
@@ -28,7 +32,8 @@ data class NearbyUiState(
     val errorDetails: String? = null,
     val minyanim: List<NearbyMinyan> = emptyList(),
     val typeFilter: String? = null,
-    val radiusKm: Int = 2,
+    val sortMode: NearbySortMode = NearbySortMode.DISTANCE,
+    val radiusMeters: Int = 2_000,
     val lastUpdated: String? = null,
     val hasLoadedOnce: Boolean = false,
 ) {
@@ -36,8 +41,22 @@ data class NearbyUiState(
         get() = minyanim.mapNotNull { it.type?.trim() }.filter { it.isNotEmpty() }.distinct()
 
     val filtered: List<NearbyMinyan>
-        get() = (if (typeFilter == null) minyanim else minyanim.filter { it.type?.trim() == typeFilter })
-            .sortedBy { it.effectiveMeters }
+        get() {
+            val base = if (typeFilter == null) {
+                minyanim
+            } else {
+                minyanim.filter { it.type?.trim() == typeFilter }
+            }
+            return when (sortMode) {
+                NearbySortMode.DISTANCE -> base.sortedBy { it.effectiveMeters }
+                NearbySortMode.TIME -> base.sortedWith(
+                    compareBy(
+                        { DayUtils.minutesUntil(it.time) == null },
+                        { DayUtils.parseTime(it.time) ?: LocalTime.MAX },
+                    )
+                )
+            }
+        }
 
     /** האם קיבלנו מרחקי הליכה אמיתיים (ORS) עבור לפחות תוצאה אחת */
     val hasWalkingData: Boolean
@@ -55,8 +74,8 @@ class NearbyViewModel(
 
     init {
         viewModelScope.launch {
-            val radius = prefs.radiusKm.first()
-            _state.update { it.copy(radiusKm = radius) }
+            val radius = prefs.radiusMeters.first()
+            _state.update { it.copy(radiusMeters = radius) }
             if (locationHelper.hasPermission()) refresh()
         }
     }
@@ -70,14 +89,18 @@ class NearbyViewModel(
         }
     }
 
-    fun setRadius(km: Int) {
-        _state.update { it.copy(radiusKm = km) }
-        viewModelScope.launch { prefs.setRadiusKm(km) }
+    fun setRadius(meters: Int) {
+        _state.update { it.copy(radiusMeters = meters) }
+        viewModelScope.launch { prefs.setRadiusMeters(meters) }
         refresh()
     }
 
     fun setTypeFilter(type: String?) {
         _state.update { it.copy(typeFilter = type) }
+    }
+
+    fun setSortMode(mode: NearbySortMode) {
+        _state.update { it.copy(sortMode = mode) }
     }
 
     fun refresh() {
@@ -96,8 +119,11 @@ class NearbyViewModel(
                 }
                 return@launch
             }
+            val radiusMeters = _state.value.radiusMeters
+            val apiRadiusKm = RadiusFormat.apiRadiusKm(radiusMeters)
             runCatching {
-                repository.nearby(location.lat, location.lng, _state.value.radiusKm)
+                repository.nearby(location.lat, location.lng, apiRadiusKm)
+                    .filter { it.effectiveMeters <= radiusMeters }
             }.onSuccess { list ->
                 _state.update {
                     it.copy(
@@ -113,7 +139,7 @@ class NearbyViewModel(
                     it.copy(
                         loading = false,
                         error = ErrorInfo.friendly(e),
-                        errorDetails = ErrorInfo.technical(e, "GetNearestMinyan radius=${it.radiusKm}"),
+                        errorDetails = ErrorInfo.technical(e, "GetNearestMinyan radius=${radiusMeters}m"),
                         hasLoadedOnce = true,
                     )
                 }
